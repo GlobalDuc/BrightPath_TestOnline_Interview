@@ -1,0 +1,9 @@
+# .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.db
+*.sqlite
+brightpath.db

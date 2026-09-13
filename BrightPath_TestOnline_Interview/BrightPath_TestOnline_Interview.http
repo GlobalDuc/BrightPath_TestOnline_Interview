@@ -1,0 +1,189 @@
+@hostname = localhost
+@port = 44332
+
+### 1. Successful Booking (60 Minutes)
+# Expected Result: 201 Created
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L101",
+  "tutorId": "tutor_1",
+  "studentName": "Nguyen Van A",
+  "roomId": 3,
+  "startTime": "2026-03-12T14:00:00+07:00",
+  "durationMin": 60,
+  "note": "Standard booking test"
+}
+
+### 2. Successful Booking (90 Minutes)
+# Expected Result: 201 Created
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L102",
+  "tutorId": "tutor_3",
+  "studentName": "Hoang Van E",
+  "roomId": 5,
+  "startTime": "2026-03-12T14:00:00+07:00",
+  "durationMin": 90,
+  "note": "90-minute intensive lesson"
+}
+
+### 3. Room Conflict Error
+# Intentionally booking a new lesson at 14:30 in the SAME ROOM 3.
+# Expected Result: 409 Conflict
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L103",
+  "tutorId": "tutor_2",
+  "studentName": "Tran Thi B",
+  "roomId": 3,
+  "startTime": "2026-03-12T14:30:00+07:00",
+  "durationMin": 60,
+  "note": "Room overlap conflict"
+}
+
+### 4. Tutor Conflict Error
+# Intentionally booking the SAME TUTOR (tutor_1) in a different room at 14:30.
+# Expected Result: 409 Conflict
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L104",
+  "tutorId": "tutor_1",
+  "studentName": "Le Van C",
+  "roomId": 4,
+  "startTime": "2026-03-12T14:30:00+07:00",
+  "durationMin": 60,
+  "note": "Tutor overlap conflict"
+}
+
+### 5. Back-to-Back Lessons (Edge Case)
+# Booking starts exactly at 15:00 when the first lesson ends.
+# Expected Result: 201 Created (Not a conflict)
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L105",
+  "tutorId": "tutor_1",
+  "studentName": "Pham Thi D",
+  "roomId": 3,
+  "startTime": "2026-03-12T15:00:00+07:00",
+  "durationMin": 60,
+  "note": "Back to back lesson"
+}
+
+### 6. Closed on Mondays Rule
+# 2026-03-09 is a Monday (Centre is closed for cleaning).
+# Expected Result: 400 Bad Request
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L106",
+  "tutorId": "tutor_1",
+  "studentName": "Monday Student",
+  "roomId": 1,
+  "startTime": "2026-03-09T10:00:00+07:00",
+  "durationMin": 60
+}
+
+### 7. Tutor Daily Load Limit (Max 6 lessons/day)
+# Send this request on separate non-overlapping hours (08:00, 09:00, ..., 14:00).
+# The 7th request on the same day will be rejected.
+# Expected Result: 400 Bad Request
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "tutorId": "tutor_99",
+  "studentName": "Overload Test",
+  "roomId": 1,
+  "startTime": "2026-03-14T08:00:00+07:00",
+  "durationMin": 60
+}
+
+### 8. Validation Error: Invalid Room Number (Room 9)
+# Expected Result: 400 Bad Request
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "tutorId": "tutor_1",
+  "studentName": "Invalid Room Student",
+  "roomId": 9,
+  "startTime": "2026-03-13T14:00:00+07:00",
+  "durationMin": 60
+}
+
+### 9. Validation Error: Invalid Duration (45 mins)
+# Expected Result: 400 Bad Request
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "tutorId": "tutor_1",
+  "studentName": "Invalid Duration Student",
+  "roomId": 2,
+  "startTime": "2026-03-13T14:00:00+07:00",
+  "durationMin": 45
+}
+
+### 10. Validation Error: Missing Tutor ID
+# Expected Result: 400 Bad Request
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "tutorId": "",
+  "studentName": "Anonymous Student",
+  "roomId": 3,
+  "startTime": "2026-03-15T14:00:00+07:00",
+  "durationMin": 60
+}
+
+### 11. Get All Lessons & Tutors (Verify Seed Data & State)
+# Expected Result: 200 OK
+GET https://{{hostname}}:{{port}}/api/v1/lessons
+
+ 
+
+### 12. Student Conflict Error (Student Double-Booking)
+# Intentionally booking a second overlapping lesson for the SAME STUDENT ("Nguyen Van A") 
+# in a different room and with a different tutor at 14:30.
+# Expected Result: 409 Conflict
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L107",
+  "tutorId": "tutor_2",
+  "studentName": "Nguyen Van A",
+  "roomId": 4,
+  "startTime": "2026-03-12T14:30:00+07:00",
+  "durationMin": 60,
+  "note": "Student overlap conflict test"
+}
+
+### 13. Validation Error: Invalid Status Value ("pending")
+# Status must be one of: booked, cancelled, no_show.
+# Expected Result: 400 Bad Request
+POST https://{{hostname}}:{{port}}/api/v1/lessons
+Content-Type: application/json
+
+{
+  "lessonCode": "L108",
+  "tutorId": "tutor_1",
+  "studentName": "Invalid Status Student",
+  "roomId": 1,
+  "startTime": "2026-03-13T16:00:00+07:00",
+  "durationMin": 60,
+  "status": "pending",
+  "note": "Invalid status test"
+}
