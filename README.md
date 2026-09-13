@@ -30,7 +30,8 @@ A robust backend scheduling and management API built with **ASP.NET Core .NET 8*
 
 ### **2. Clone & Run the Project**
 Open your terminal and run the following commands sequentially:
-<img width="1178" height="518" alt="image" src="https://github.com/user-attachments/assets/37ab1d93-69c2-42f2-acd6-f95fc342c158" />
+<img width="1172" height="517" alt="image" src="https://github.com/user-attachments/assets/3e307435-7c01-4204-b172-f1374dbfefd2" />
+
 
 Open your terminal and run the following commands sequentially:
 
